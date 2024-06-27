@@ -1,0 +1,345 @@
+openapi: 3.0.0
+info:
+  title: Bookshop API
+  version: 1.0.0
+tags:
+  - name: BookShop
+    description: Operations related to managing books
+  - name: BookOrder
+    description: Operations related to managing orders
+  - name: PDF
+    description: Operations related to generating PDF reports
+
+paths:
+
+  /books:
+    get:
+      summary: Get all books
+      tags:
+        - Books
+      operationId: getAllBooks
+      responses:
+        '200':
+          description: A list of books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookDetails'
+    post:
+      summary: Add a new book
+      tags:
+        - Books
+      operationId: addNewBook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookRequest'
+      responses:
+        '200':
+          description: Book created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookDetails'
+        '400':
+          description: Bad request
+  /books/{id}:
+    get:
+      summary: Get book by ID
+      tags:
+        - Books
+      operationId: getBookById
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Details of the requested book
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookDetails'
+        '404':
+          description: Book not found
+    put:
+      summary: Update a book
+      tags:
+        - Books
+      operationId: updateBook
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookRequest'
+      responses:
+        '200':
+          description: Book updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookDetails'
+        '400':
+          description: Bad request
+        '404':
+          description: Book not found
+    delete:
+      summary: Delete a book
+      tags:
+        - Books
+      operationId: deleteBook
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Book deleted
+        '404':
+          description: Book not found
+
+  # FILTER
+
+  /books/filter:
+    get:
+      summary: Filter and sort books
+      operationId: filterBooks
+      parameters:
+        - name: title
+          in: query
+          required: false
+          description: Title of the book
+          schema:
+            type: string
+        - name: bookType
+          in: query
+          required: false
+          description: Type of the book
+          schema:
+            $ref: '#/components/schemas/BookType'
+        - name: maxPages
+          in: query
+          required: false
+          description: Maximum number of pages
+          schema:
+            type: integer
+        - name: maxPrice
+          in: query
+          required: false
+          description: Maximum price of the book
+          schema:
+            type: number
+            format: double
+        - name: sortBy
+          in: query
+          required: false
+          description: Field to sort by
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookDetails'
+
+  /orders:
+    get:
+      summary: Get all order details
+      tags:
+        - Orders
+      operationId: getAllOrder
+      responses:
+        '200':
+          description: A list of order details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderDetails'
+    post:
+      summary: Add new order details
+      tags:
+        - Orders
+      operationId: addNewOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      responses:
+        '200':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetails'
+        '400':
+          description: Bad request
+
+  /bookToOrder/order-report:
+    post:
+      summary: Send order report to the book-order module
+      tags:
+        - BookShop
+      operationId: sendBookToOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/BookToOrderRequest'
+      responses:
+        '200':
+          description: Order report sent successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookToOrderDetails'
+
+  /bookToOrder/order-report/print:
+    get:
+      summary: Generate PDF report
+      description: Generate a PDF report of books to order.
+      tags:
+        - PDF
+      operationId: generatePDFReport
+      responses:
+        '200':
+          description: PDF report generated successfully
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+components:
+  schemas:
+
+    # Book
+
+    BookRequest:
+      type: object
+      required: [title, authorId, bookType, pages, price]
+      properties:
+        title:
+          type: string
+        authorId:
+          $ref: '#/components/schemas/Uuid'
+        bookType:
+          $ref: '#/components/schemas/BookType'
+        pages:
+          type: integer
+          format: int64
+        price:
+          type: number
+          format: double
+
+    BookDetails:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        title:
+          type: string
+        authorId:
+          $ref: '#/components/schemas/Uuid'
+        bookType:
+          $ref: '#/components/schemas/BookType'
+        pages:
+          type: integer
+          format: int64
+        price:
+          type: number
+          format: double
+
+    # Order
+
+    OrderRequest:
+      type: object
+      required: [bookId,quantity,price]
+      properties:
+        bookId:
+          $ref: '#/components/schemas/Uuid'
+        quantity:
+          type: integer
+          format: int64
+        price:
+          type: number
+          format: double
+
+    OrderDetails:
+      type: object
+      properties:
+        orderId:
+          $ref: '#/components/schemas/Uuid'
+        bookId:
+          $ref: '#/components/schemas/Uuid'
+        quantity:
+          type: integer
+          format: int64
+        totalPrice:
+          type: number
+          format: double
+
+    # Order
+
+    BookToOrderRequest:
+      type: object
+      required: [bookId, title, visitorCount]
+      properties:
+        bookId:
+          $ref: '#/components/schemas/Uuid'
+        title:
+          type: string
+        visitorCount:
+          type: integer
+          format: int32
+
+    BookToOrderDetails:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        bookId:
+          $ref: '#/components/schemas/Uuid'
+        quantity:
+          type: integer
+          format: int64
+
+    #BookType
+
+    BookType:
+      type: string
+      enum:
+        - NOVEL
+        - FANTASY
+        - CRIME
+        - HORROR
+        - THRILLER
+
+    # BASIC
+
+    Uuid:
+      description: UUID v4.
+      type: string
+      format: uuid
+  parameters:
+    Id:
+      name: id
+      in: path
+      description: ID of entity (UUID).
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'

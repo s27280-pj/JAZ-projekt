@@ -1,0 +1,11 @@
+{
+  "apiPackage": "pl.bookstore.api",
+  "modelPackage": "pl.bookstore.model",
+  "hideGenerationTimestamp": true,
+  "useBeanValidation": true,
+  "interfaceOnly": true,
+  "defaultInterfaces": false,
+  "skipDefaultInterface": true,
+  "java8": true,
+  "additionalModelTypeAnnotations": "@lombok.Getter\n@lombok.Setter\n@lombok.ToString\n@lombok.RequiredArgsConstructor\n@lombok.AllArgsConstructor"
+}
